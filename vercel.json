@@ -27,8 +27,8 @@
     }
   ],
   "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "DB_NAME": "time-management-app",
-    "JWT_SECRET": "@jwt_secret"
+    "MONGODB_URI": "${MONGODB_URI}",
+    "DB_NAME": "${DB_NAME}",
+    "JWT_SECRET": "${JWT_SECRET}"
   }
 } 
