@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "buildCommand": false,
-  "outputDirectory": false,
+  "buildCommand": null,
+  "outputDirectory": null,
   "builds": [
     {
       "src": "api/**/*.js",
