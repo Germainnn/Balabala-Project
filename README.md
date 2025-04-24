@@ -158,3 +158,4 @@ This application includes localStorage fallback support, which means:
 - Database: MongoDB Atlas
 - Authentication: JWT
 - Hosting: Vercel
+"# redeploy trigger" 
