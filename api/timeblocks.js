@@ -8,16 +8,36 @@ const collectionName = 'timeblocks';
 
 // Helper function to connect to MongoDB
 async function connectToDatabase() {
-  const client = await MongoClient.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-  
-  return {
-    client,
-    db: client.db(dbName),
-    collection: client.db(dbName).collection(collectionName)
-  };
+  if (!uri) {
+    throw new Error('MONGODB_URI environment variable is not set');
+  }
+
+  try {
+    console.log('Attempting to connect to MongoDB...');
+    console.log('Database name:', dbName);
+    console.log('URI format check:', uri.startsWith('mongodb+srv://') ? 'Valid MongoDB Atlas URI' : 'Invalid URI format');
+    
+    const client = await MongoClient.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    
+    console.log('Successfully connected to MongoDB');
+    
+    return {
+      client,
+      db: client.db(dbName),
+      collection: client.db(dbName).collection(collectionName)
+    };
+  } catch (error) {
+    console.error('MongoDB connection error:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
+    throw error;
+  }
 }
 
 export default async function handler(req, res) {
@@ -36,9 +56,11 @@ export default async function handler(req, res) {
     return;
   }
 
-  let { client, collection } = await connectToDatabase();
-
+  let client;
   try {
+    const { client: dbClient, collection } = await connectToDatabase();
+    client = dbClient;
+
     // Handle different HTTP methods
     switch (req.method) {
       case 'GET':
@@ -127,10 +149,26 @@ export default async function handler(req, res) {
         res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   } catch (error) {
-    console.error('Error handling request:', error);
-    res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    console.error('Error handling request:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
+    
+    // Send more detailed error response
+    res.status(500).json({ 
+      message: 'Internal Server Error',
+      error: {
+        name: error.name,
+        message: error.message,
+        code: error.code
+      }
+    });
   } finally {
     // Close the database connection
-    await client.close();
+    if (client) {
+      await client.close();
+    }
   }
 } 

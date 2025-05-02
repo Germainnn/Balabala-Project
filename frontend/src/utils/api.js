@@ -85,21 +85,21 @@ const initializeLocalStorage = () => {
 initializeLocalStorage();
 
 // Helper functions to interact with localStorage
-const getMockTimeBlocks = () => {
-  return JSON.parse(localStorage.getItem('mockTimeBlocks') || '[]');
+const getLocalTimeBlocks = () => {
+  return JSON.parse(localStorage.getItem('timeBlocks') || '[]');
 };
 
-const setMockTimeBlocks = (blocks) => {
-  localStorage.setItem('mockTimeBlocks', JSON.stringify(blocks));
+const setLocalTimeBlocks = (blocks) => {
+  localStorage.setItem('timeBlocks', JSON.stringify(blocks));
   return blocks;
 };
 
-const getMockRecurringTasks = () => {
-  return JSON.parse(localStorage.getItem('mockRecurringTasks') || '[]');
+const getLocalRecurringTasks = () => {
+  return JSON.parse(localStorage.getItem('recurringTasks') || '[]');
 };
 
-const setMockRecurringTasks = (tasks) => {
-  localStorage.setItem('mockRecurringTasks', JSON.stringify(tasks));
+const setLocalRecurringTasks = (tasks) => {
+  localStorage.setItem('recurringTasks', JSON.stringify(tasks));
   return tasks;
 };
 
@@ -110,11 +110,14 @@ export const getTimeBlocks = async () => {
     if (!response.ok) {
       throw new Error('Failed to fetch time blocks');
     }
-    return await response.json();
+    const data = await response.json();
+    // Update localStorage with the latest data
+    setLocalTimeBlocks(data);
+    return data;
   } catch (error) {
     console.error('Error fetching time blocks:', error);
-    // Return mock data from localStorage
-    return getMockTimeBlocks();
+    // Return data from localStorage
+    return getLocalTimeBlocks();
   }
 };
 
@@ -130,18 +133,23 @@ export const createTimeBlock = async (timeBlock) => {
     if (!response.ok) {
       throw new Error('Failed to create time block');
     }
-    return await response.json();
+    const data = await response.json();
+    // Update localStorage
+    const blocks = getLocalTimeBlocks();
+    blocks.push(data);
+    setLocalTimeBlocks(blocks);
+    return data;
   } catch (error) {
     console.error('Error creating time block:', error);
-    // Save to localStorage
-    const blocks = getMockTimeBlocks();
-    const mockBlock = {
+    // Save to localStorage with a temporary ID
+    const blocks = getLocalTimeBlocks();
+    const localBlock = {
       ...timeBlock,
       id: Date.now().toString(),
     };
-    blocks.push(mockBlock);
-    setMockTimeBlocks(blocks);
-    return mockBlock;
+    blocks.push(localBlock);
+    setLocalTimeBlocks(blocks);
+    return localBlock;
   }
 };
 
@@ -157,15 +165,23 @@ export const updateTimeBlock = async (timeBlock) => {
     if (!response.ok) {
       throw new Error('Failed to update time block');
     }
-    return await response.json();
+    const data = await response.json();
+    // Update localStorage
+    const blocks = getLocalTimeBlocks();
+    const index = blocks.findIndex(block => block.id === timeBlock.id);
+    if (index !== -1) {
+      blocks[index] = data;
+      setLocalTimeBlocks(blocks);
+    }
+    return data;
   } catch (error) {
     console.error('Error updating time block:', error);
     // Update in localStorage
-    const blocks = getMockTimeBlocks();
+    const blocks = getLocalTimeBlocks();
     const index = blocks.findIndex(block => block.id === timeBlock.id);
     if (index !== -1) {
       blocks[index] = timeBlock;
-      setMockTimeBlocks(blocks);
+      setLocalTimeBlocks(blocks);
       return timeBlock;
     }
     return null;
@@ -180,13 +196,17 @@ export const deleteTimeBlock = async (id) => {
     if (!response.ok) {
       throw new Error('Failed to delete time block');
     }
+    // Update localStorage
+    const blocks = getLocalTimeBlocks();
+    const updatedBlocks = blocks.filter(block => block.id !== id);
+    setLocalTimeBlocks(updatedBlocks);
     return true;
   } catch (error) {
     console.error('Error deleting time block:', error);
     // Delete from localStorage
-    const blocks = getMockTimeBlocks();
+    const blocks = getLocalTimeBlocks();
     const updatedBlocks = blocks.filter(block => block.id !== id);
-    setMockTimeBlocks(updatedBlocks);
+    setLocalTimeBlocks(updatedBlocks);
     return true;
   }
 };
@@ -298,11 +318,14 @@ export const getRecurringTasks = async () => {
     if (!response.ok) {
       throw new Error('Failed to fetch recurring tasks');
     }
-    return await response.json();
+    const data = await response.json();
+    // Update localStorage with the latest data
+    setLocalRecurringTasks(data);
+    return data;
   } catch (error) {
     console.error('Error fetching recurring tasks:', error);
-    // Return mock data from localStorage
-    return getMockRecurringTasks();
+    // Return data from localStorage
+    return getLocalRecurringTasks();
   }
 };
 
@@ -318,20 +341,25 @@ export const createRecurringTask = async (task) => {
     if (!response.ok) {
       throw new Error('Failed to create recurring task');
     }
-    return await response.json();
+    const data = await response.json();
+    // Update localStorage
+    const tasks = getLocalRecurringTasks();
+    tasks.push(data);
+    setLocalRecurringTasks(tasks);
+    return data;
   } catch (error) {
     console.error('Error creating recurring task:', error);
     // Save to localStorage
-    const tasks = getMockRecurringTasks();
-    const mockTask = {
+    const tasks = getLocalRecurringTasks();
+    const localTask = {
       ...task,
       id: Date.now().toString(),
       completed: false,
       createdAt: new Date().toISOString()
     };
-    tasks.push(mockTask);
-    setMockRecurringTasks(tasks);
-    return mockTask;
+    tasks.push(localTask);
+    setLocalRecurringTasks(tasks);
+    return localTask;
   }
 };
 
@@ -347,15 +375,23 @@ export const updateRecurringTask = async (task) => {
     if (!response.ok) {
       throw new Error('Failed to update recurring task');
     }
-    return await response.json();
+    const data = await response.json();
+    // Update localStorage
+    const tasks = getLocalRecurringTasks();
+    const index = tasks.findIndex(t => t.id === task.id);
+    if (index !== -1) {
+      tasks[index] = data;
+      setLocalRecurringTasks(tasks);
+    }
+    return data;
   } catch (error) {
     console.error('Error updating recurring task:', error);
     // Update in localStorage
-    const tasks = getMockRecurringTasks();
+    const tasks = getLocalRecurringTasks();
     const index = tasks.findIndex(t => t.id === task.id);
     if (index !== -1) {
       tasks[index] = task;
-      setMockRecurringTasks(tasks);
+      setLocalRecurringTasks(tasks);
       return task;
     }
     return null;
@@ -370,13 +406,17 @@ export const deleteRecurringTask = async (id) => {
     if (!response.ok) {
       throw new Error('Failed to delete recurring task');
     }
+    // Update localStorage
+    const tasks = getLocalRecurringTasks();
+    const updatedTasks = tasks.filter(task => task.id !== id);
+    setLocalRecurringTasks(updatedTasks);
     return true;
   } catch (error) {
     console.error('Error deleting recurring task:', error);
     // Delete from localStorage
-    const tasks = getMockRecurringTasks();
+    const tasks = getLocalRecurringTasks();
     const updatedTasks = tasks.filter(task => task.id !== id);
-    setMockRecurringTasks(updatedTasks);
+    setLocalRecurringTasks(updatedTasks);
     return true;
   }
 }; 
