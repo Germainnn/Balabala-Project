@@ -1,24 +1,14 @@
 {
   "version": 2,
-  "buildCommand": null,
-  "outputDirectory": null,
-  "builds": [
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node",
-      "config": {
-        "runtime": "nodejs18.x"
-      }
-    },
-    {
-      "src": "frontend/build/**",
-      "use": "@vercel/static"
-    }
-  ],
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/build",
   "routes": [
     {
       "src": "/api/(.*)",
       "dest": "/api/$1.js"
+    },
+    {
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
